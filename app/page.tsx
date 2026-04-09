@@ -1,5 +1,39 @@
 import Image from "next/image";
 
+import { prepare, layout } from "@chenglou/pretext";
+import { useMemo, useRef, useState, useEffect } from "react";
+
+const FONT = '16px Inter';
+
+/* Function to initialize text height */
+function useTextHeight(text: string, containerWidth: number, lineHeight: number) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+
+  // 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const ro = new ResizeObserver(([entry]) => {
+      setWidth(entry.contentRect.width)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+
+  }, []);
+
+  // For the initial expensive text calculations — Calls when text changes
+  const prepared = useMemo(() => prepare(text, FONT), [text])
+  const { height } = useMemo(
+    () => layout(prepared, containerWidth, lineHeight),
+    [prepared, containerWidth, lineHeight]
+  )
+  return height
+}
+
+
+
 export default function Home() {
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
